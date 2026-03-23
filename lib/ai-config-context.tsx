@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { DEFAULT_TEMPERATURE, DEFAULT_MAX_TOKENS, DEFAULT_MODEL } from './constants';
 
 export interface AIConfig {
   apiKey: string;
@@ -19,9 +20,9 @@ const AIConfigContext = createContext<AIConfigContextType | undefined>(undefined
 
 const DEFAULT_CONFIG: AIConfig = {
   apiKey: '',
-  temperature: 0.7,
-  maxTokens: 2048,
-  modelName: 'llama2',
+  temperature: DEFAULT_TEMPERATURE,
+  maxTokens: DEFAULT_MAX_TOKENS,
+  modelName: DEFAULT_MODEL,
 };
 
 const STORAGE_KEY = 'aiChatSettings';

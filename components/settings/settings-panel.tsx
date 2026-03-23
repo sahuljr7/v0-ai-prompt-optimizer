@@ -37,6 +37,7 @@ export function SettingsPanel({
   };
 
   const models = [
+    { value: 'qwen3.5', label: 'Qwen 3.5' },
     { value: 'llama2', label: 'Llama 2' },
     { value: 'llama2-uncensored', label: 'Llama 2 Uncensored' },
     { value: 'mistral', label: 'Mistral' },
