@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { Sidebar } from './sidebar';
 
-type TabType = 'chat' | 'optimizer' | 'settings';
+type TabType = 'chat' | 'optimizer';
 
 interface AppShellProps {
   children: ReactNode;

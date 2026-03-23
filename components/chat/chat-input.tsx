@@ -8,15 +8,14 @@ import { Input } from '@/components/ui/input';
 interface ChatInputProps {
   onSend: (message: string) => void;
   isLoading: boolean;
-  disabled: boolean;
 }
 
-export function ChatInput({ onSend, isLoading, disabled }: ChatInputProps) {
+export function ChatInput({ onSend, isLoading }: ChatInputProps) {
   const [input, setInput] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (input.trim() && !isLoading && !disabled) {
+    if (input.trim() && !isLoading) {
       onSend(input);
       setInput('');
     }
@@ -40,17 +39,13 @@ export function ChatInput({ onSend, isLoading, disabled }: ChatInputProps) {
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder={
-          disabled
-            ? 'Configure API key in settings to start chatting'
-            : 'Type your message... (Shift+Enter for new line)'
-        }
-        disabled={isLoading || disabled}
+        placeholder="Type your message... (Shift+Enter for new line)"
+        disabled={isLoading}
         className="flex-1 bg-input border-border"
       />
       <Button
         type="submit"
-        disabled={isLoading || disabled || !input.trim()}
+        disabled={isLoading || !input.trim()}
         className="gap-2"
       >
         {isLoading ? (
