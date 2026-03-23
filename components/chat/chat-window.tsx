@@ -4,28 +4,14 @@ import { useState, useRef, useEffect } from 'react';
 import { MessageBubble } from './message-bubble';
 import { ChatInput } from './chat-input';
 import { useChat } from '@/hooks/use-chat';
-import { useOllamaAPI } from '@/hooks/use-ollama-api';
+import { useBackendChat } from '@/hooks/use-backend-chat';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-interface ChatWindowProps {
-  apiKey: string;
-  temperature: number;
-  maxTokens: number;
-  modelName: string;
-}
-
-export function ChatWindow({
-  apiKey,
-  temperature,
-  maxTokens,
-  modelName,
-}: ChatWindowProps) {
+export function ChatWindow() {
   const { messages, addMessage, addStreamingMessage, updateLastMessage } = useChat();
-  const { generateResponse } = useOllamaAPI({
-    apiKey,
-    temperature,
-    maxTokens,
-    modelName,
+  const { generateResponse } = useBackendChat({
+    temperature: 0.7,
+    maxTokens: 2048,
   });
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -38,7 +24,7 @@ export function ChatWindow({
   }, [messages]);
 
   const handleSendMessage = async (text: string) => {
-    if (!text.trim() || !apiKey || !modelName) {
+    if (!text.trim()) {
       return;
     }
 
@@ -48,7 +34,7 @@ export function ChatWindow({
       addStreamingMessage({ role: 'assistant', content: '' });
 
       await generateResponse(
-        text,
+        [...messages, { role: 'user' as const, content: text }],
         (chunk) => {
           updateLastMessage((prev) => ({
             ...prev,
@@ -79,7 +65,7 @@ export function ChatWindow({
                     Welcome to AI Chat
                   </h2>
                   <p className="text-muted-foreground max-w-md">
-                    Configure your API key and model in settings to get started with intelligent conversations.
+                    Start typing to begin your conversation with the AI assistant.
                   </p>
                 </div>
               </div>
@@ -97,7 +83,6 @@ export function ChatWindow({
         <ChatInput
           onSend={handleSendMessage}
           isLoading={isLoading}
-          disabled={!apiKey || !modelName}
         />
       </div>
     </div>
