@@ -9,6 +9,7 @@ export const API_TIMEOUT = 60000; // 60 seconds
 
 // Model Configuration
 export const AVAILABLE_MODELS = [
+  { value: 'qwen3.5', label: 'Qwen 3.5' },
   { value: 'llama2', label: 'Llama 2' },
   { value: 'llama2-uncensored', label: 'Llama 2 Uncensored' },
   { value: 'mistral', label: 'Mistral' },
@@ -22,6 +23,7 @@ export const TEMPERATURE_RANGE = { min: 0, max: 2, step: 0.1 };
 export const MAX_TOKENS_RANGE = { min: 128, max: 8192, step: 256 };
 export const DEFAULT_TEMPERATURE = 0.7;
 export const DEFAULT_MAX_TOKENS = 2048;
+export const DEFAULT_MODEL = 'qwen3.5';
 
 // UI Constants
 export const STORAGE_KEY_SETTINGS = 'aiChatSettings';
