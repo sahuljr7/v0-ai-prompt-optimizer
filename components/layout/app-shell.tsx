@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { Sidebar } from './sidebar';
+import { Footer } from './footer';
 
 type TabType = 'chat' | 'optimizer';
 
@@ -11,11 +12,14 @@ interface AppShellProps {
 
 export function AppShell({ children, activeTab, onTabChange }: AppShellProps) {
   return (
-    <div className="flex h-screen bg-background">
-      <Sidebar activeTab={activeTab} onTabChange={onTabChange} />
-      <main className="flex-1 flex flex-col overflow-hidden">
-        {children}
-      </main>
+    <div className="flex h-screen bg-background flex-col">
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar activeTab={activeTab} onTabChange={onTabChange} />
+        <main className="flex-1 flex flex-col overflow-hidden">
+          {children}
+        </main>
+      </div>
+      <Footer />
     </div>
   );
 }
