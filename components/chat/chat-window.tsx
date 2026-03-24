@@ -10,9 +10,16 @@ import { useChat } from '@/hooks/use-chat';
 import { useBackendChat } from '@/hooks/use-backend-chat';
 import { useGlobalShortcuts } from '@/hooks/use-global-shortcuts';
 import { generateShareId, createShareUrl } from '@/lib/chat-utils';
+import { Conversation } from '@/hooks/use-conversations';
 
-export function ChatWindow() {
-  const { messages, addMessage, addStreamingMessage, updateLastMessage, updateMessage } = useChat();
+interface ChatWindowProps {
+  conversation?: Conversation;
+  onSaveMessages?: (messages: any[]) => void;
+  onUpdateTitle?: (id: string, title: string) => void;
+}
+
+export function ChatWindow({ conversation, onSaveMessages, onUpdateTitle }: ChatWindowProps) {
+  const { messages, addMessage, addStreamingMessage, updateLastMessage, updateMessage, clearMessages, deleteMessage } = useChat();
   const { generateResponse, stopGeneration } = useBackendChat({
     temperature: 0.7,
     maxTokens: 2048,
@@ -26,11 +33,33 @@ export function ChatWindow() {
   const [shareId, setShareId] = useState<string | null>(null);
   const [shareCopied, setShareCopied] = useState(false);
   const lastUserMessageRef = useRef<string>('');
+  const previousConversationIdRef = useRef<string | null>(null);
 
   // Global keyboard shortcuts
   useGlobalShortcuts({
     focusInput: () => textareaRef.current?.focus(),
   });
+
+  // Sync messages with conversation when it changes
+  useEffect(() => {
+    if (conversation && conversation.id) {
+      // Only sync if we're switching to a different conversation
+      if (previousConversationIdRef.current !== conversation.id) {
+        previousConversationIdRef.current = conversation.id;
+        
+        // Clear current messages and load conversation messages
+        clearMessages();
+        
+        // Reload messages from conversation
+        conversation.messages.forEach((msg) => {
+          addMessage({ role: msg.role, content: msg.content });
+        });
+        
+        // Auto-focus input
+        setTimeout(() => textareaRef.current?.focus(), 0);
+      }
+    }
+  }, [conversation?.id]);
 
   // Smart auto-scroll: only scroll if user hasn't manually scrolled up
   const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
@@ -53,6 +82,28 @@ export function ChatWindow() {
       scrollToBottom('smooth');
     }
   }, [messages, userHasScrolled]);
+
+  // Save messages to conversation whenever they change
+  useEffect(() => {
+    if (onSaveMessages && conversation?.id && messages.length > 0) {
+      // Only save if we're not in the loading/syncing phase
+      // Use a timeout to debounce rapid updates
+      const timer = setTimeout(() => {
+        onSaveMessages(messages);
+
+        // Auto-generate title from first user message if title is still "New Chat"
+        if (conversation.title === 'New Chat') {
+          const firstUserMessage = messages.find((m) => m.role === 'user');
+          if (firstUserMessage) {
+            const title = firstUserMessage.content.slice(0, 50);
+            onUpdateTitle?.(conversation.id, title);
+          }
+        }
+      }, 300);
+
+      return () => clearTimeout(timer);
+    }
+  }, [messages, conversation?.id, conversation?.title, onSaveMessages, onUpdateTitle]);
 
   const handleSendMessage = async (text: string) => {
     if (!text.trim()) {
