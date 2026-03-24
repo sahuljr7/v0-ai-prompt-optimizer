@@ -56,16 +56,48 @@ export function MessageBubble({ role, content }: MessageBubbleProps) {
               components={{
                 code({ node, inline, className, children, ...props }) {
                   const match = /language-(\w+)/.exec(className || '');
-                  return !inline && match ? (
-                    <SyntaxHighlighter
-                      style={atomDark}
-                      language={match[1]}
-                      PreTag="div"
-                      {...props}
-                    >
-                      {String(children).replace(/\n$/, '')}
-                    </SyntaxHighlighter>
-                  ) : (
+                  const codeString = String(children).replace(/\n$/, '');
+                  const language = match ? match[1] : 'text';
+                  
+                  if (!inline && match) {
+                    return (
+                      <div className="relative group">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            navigator.clipboard.writeText(codeString);
+                            setCopied(true);
+                            setTimeout(() => setCopied(false), 2000);
+                          }}
+                          className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity h-auto p-1 text-xs"
+                        >
+                          {copied ? (
+                            <>
+                              <Check className="w-3 h-3 mr-1" />
+                              Copied
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3 h-3 mr-1" />
+                              Copy
+                            </>
+                          )}
+                        </Button>
+                        <div className="text-xs text-muted-foreground mb-2 font-mono">{language}</div>
+                        <SyntaxHighlighter
+                          style={atomDark}
+                          language={language}
+                          PreTag="div"
+                          {...props}
+                        >
+                          {codeString}
+                        </SyntaxHighlighter>
+                      </div>
+                    );
+                  }
+                  
+                  return (
                     <code className={className} {...props}>
                       {children}
                     </code>
