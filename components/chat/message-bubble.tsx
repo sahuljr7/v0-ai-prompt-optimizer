@@ -7,15 +7,33 @@ import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import remarkGfm from 'remark-gfm';
 import { Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { MessageEditor } from './message-editor';
+import { MessageActions } from './message-actions';
 
 interface MessageBubbleProps {
+  id: string;
   role: 'user' | 'assistant';
   content: string;
+  isEdited?: boolean;
+  attachments?: Array<{ name: string; size: number; type: string }>;
+  onEdit?: (messageId: string, newContent: string) => void;
+  onExport?: () => void;
+  onShare?: () => void;
 }
 
-export function MessageBubble({ role, content }: MessageBubbleProps) {
+export function MessageBubble({
+  id,
+  role,
+  content,
+  isEdited,
+  attachments,
+  onEdit,
+  onExport,
+  onShare,
+}: MessageBubbleProps) {
   const isUser = role === 'user';
   const [copied, setCopied] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(content);
@@ -23,32 +41,51 @@ export function MessageBubble({ role, content }: MessageBubbleProps) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleEditSave = (newContent: string) => {
+    if (onEdit) {
+      onEdit(id, newContent);
+      setIsEditing(false);
+    }
+  };
+
+  if (isEditing && isUser) {
+    return (
+      <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+        <div className="max-w-2xl w-full">
+          <MessageEditor
+            initialContent={content}
+            onSave={handleEditSave}
+            onCancel={() => setIsEditing(false)}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} gap-2`}>
       {!isUser && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleCopy}
-          className="mt-1 h-auto p-1 text-muted-foreground hover:text-foreground"
-          title={copied ? 'Copied!' : 'Copy message'}
-        >
-          {copied ? (
-            <Check className="w-4 h-4" />
-          ) : (
-            <Copy className="w-4 h-4" />
-          )}
-        </Button>
+        <MessageActions
+          content={content}
+          messageId={id}
+          isUser={false}
+          onExport={onExport}
+          onShare={onShare}
+        />
       )}
-      <div
-        className={`max-w-2xl px-4 py-3 rounded-lg ${
-          isUser
-            ? 'bg-primary text-primary-foreground'
-            : 'bg-secondary text-secondary-foreground'
-        }`}
-      >
+      <div>
+        <div
+          className={`max-w-2xl px-4 py-3 rounded-lg ${
+            isUser
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-secondary text-secondary-foreground'
+          }`}
+        >
         {isUser ? (
-          <p className="whitespace-pre-wrap">{content}</p>
+          <div className="whitespace-pre-wrap">
+            {content}
+            {isEdited && <span className="text-xs ml-2 italic opacity-70">(edited)</span>}
+          </div>
         ) : (
           <div className="prose prose-invert max-w-none">
             <ReactMarkdown
@@ -117,7 +154,28 @@ export function MessageBubble({ role, content }: MessageBubbleProps) {
             </ReactMarkdown>
           </div>
         )}
+        {attachments && attachments.length > 0 && (
+          <div className="mt-3 space-y-2">
+            {attachments.map((file, idx) => (
+              <div
+                key={idx}
+                className="flex items-center gap-2 p-2 rounded bg-black/20 text-xs"
+              >
+                <span>📎</span>
+                <span>{file.name}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
+      {isUser && (
+        <MessageActions
+          content={content}
+          messageId={id}
+          isUser={true}
+          onEdit={() => setIsEditing(true)}
+        />
+      )}
     </div>
   );
 }
