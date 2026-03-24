@@ -6,9 +6,9 @@ export function Footer() {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <footer className="border-t border-border bg-card px-6 py-4">
+    <footer className="border-t border-border bg-card px-3 sm:px-6 py-3 sm:py-4">
       <div className="flex items-center justify-between max-w-7xl mx-auto">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-xs sm:text-sm text-muted-foreground">
           Built with <span className="text-red-500">♡</span> by Sahul
         </p>
         <Button

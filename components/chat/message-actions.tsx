@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Copy, Check, Edit2, Download, Share2 } from 'lucide-react';
+import { Copy, Check, Edit2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface MessageActionsProps {
@@ -9,8 +9,6 @@ interface MessageActionsProps {
   messageId: string;
   isUser: boolean;
   onEdit?: () => void;
-  onExport?: () => void;
-  onShare?: () => void;
 }
 
 export function MessageActions({
@@ -18,8 +16,6 @@ export function MessageActions({
   messageId,
   isUser,
   onEdit,
-  onExport,
-  onShare,
 }: MessageActionsProps) {
   const [copied, setCopied] = useState(false);
 
@@ -30,7 +26,7 @@ export function MessageActions({
   };
 
   return (
-    <div className="flex gap-1">
+    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
       <Button
         variant="ghost"
         size="sm"
@@ -39,9 +35,9 @@ export function MessageActions({
         title="Copy message"
       >
         {copied ? (
-          <Check className="w-4 h-4" />
+          <Check className="w-3 h-3" />
         ) : (
-          <Copy className="w-4 h-4" />
+          <Copy className="w-3 h-3" />
         )}
       </Button>
 
@@ -53,31 +49,7 @@ export function MessageActions({
           className="h-auto p-1 text-muted-foreground hover:text-foreground"
           title="Edit message"
         >
-          <Edit2 className="w-4 h-4" />
-        </Button>
-      )}
-
-      {onExport && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onExport}
-          className="h-auto p-1 text-muted-foreground hover:text-foreground"
-          title="Download as markdown"
-        >
-          <Download className="w-4 h-4" />
-        </Button>
-      )}
-
-      {onShare && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onShare}
-          className="h-auto p-1 text-muted-foreground hover:text-foreground"
-          title="Share conversation"
-        >
-          <Share2 className="w-4 h-4" />
+          <Edit2 className="w-3 h-3" />
         </Button>
       )}
     </div>
