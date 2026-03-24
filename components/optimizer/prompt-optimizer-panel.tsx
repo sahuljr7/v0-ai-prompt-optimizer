@@ -1,11 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { Lightbulb, Copy, Check } from 'lucide-react';
+import { Lightbulb, Copy, Check, Loader } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { usePromptOptimizer } from '@/hooks/use-prompt-optimizer';
+
+type ToneType = 'professional' | 'casual' | 'creative' | 'technical';
+type StyleType = 'structured' | 'narrative' | 'step-by-step';
 
 const optimizationTips = [
   {
@@ -51,24 +55,46 @@ const promptTemplates = [
     template:
       'Explain [concept] in simple terms. Use analogies and examples. Target audience: [audience level].',
   },
+  {
+    name: 'Content Summary',
+    template:
+      'Summarize the following content: [content]. Include: key points, main ideas, and actionable takeaways.',
+  },
+  {
+    name: 'Email Writing',
+    template:
+      'Write a professional email to [recipient] about [topic]. Tone: [tone]. Include [specific elements]. Keep it under [word count] words.',
+  },
 ];
 
 export function PromptOptimizerPanel() {
   const [prompt, setPrompt] = useState('');
   const [optimized, setOptimized] = useState('');
   const [copied, setCopied] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [tone, setTone] = useState<ToneType>('professional');
+  const [style, setStyle] = useState<StyleType>('structured');
+  const [error, setError] = useState('');
+  const { optimizePrompt } = usePromptOptimizer();
 
-  const handleOptimize = () => {
-    // Simple optimization logic - add more sophistication as needed
-    const optimizationSuggestions = [
-      prompt,
-      '\n\n[Optimized Prompt]',
-      'Please ' + prompt.toLowerCase().trim(),
-      '\nProvide a detailed and structured response.',
-      '\nInclude examples if relevant.',
-    ];
+  const handleOptimize = async () => {
+    if (!prompt.trim()) return;
 
-    setOptimized(optimizationSuggestions.join(''));
+    setIsLoading(true);
+    setOptimized('');
+    setError('');
+
+    try {
+      await optimizePrompt(prompt, (chunk) => {
+        setOptimized((prev) => prev + chunk);
+      }, { tone, style });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to optimize prompt';
+      setError(message);
+      setOptimized('');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleCopyOptimized = () => {
@@ -83,11 +109,11 @@ export function PromptOptimizerPanel() {
 
   return (
     <div className="flex-1 overflow-auto">
-      <div className="p-6 max-w-4xl mx-auto space-y-6">
+      <div className="p-6 max-w-5xl mx-auto space-y-6">
         <div>
           <h1 className="text-3xl font-bold text-foreground mb-2">Prompt Optimizer</h1>
           <p className="text-muted-foreground">
-            Enhance your prompts for better AI responses
+            Transform vague prompts into powerful, specific instructions for better AI results
           </p>
         </div>
 
@@ -105,13 +131,58 @@ export function PromptOptimizerPanel() {
                 placeholder="Type your prompt here..."
                 className="min-h-48 bg-input border-border"
               />
+
+              {/* Tone and Style Controls */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="tone" className="text-sm">
+                    Tone
+                  </Label>
+                  <select
+                    id="tone"
+                    value={tone}
+                    onChange={(e) => setTone(e.target.value as ToneType)}
+                    className="w-full px-3 py-2 rounded-md border border-border bg-input text-foreground text-sm"
+                  >
+                    <option value="professional">Professional</option>
+                    <option value="casual">Casual</option>
+                    <option value="creative">Creative</option>
+                    <option value="technical">Technical</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="style" className="text-sm">
+                    Style
+                  </Label>
+                  <select
+                    id="style"
+                    value={style}
+                    onChange={(e) => setStyle(e.target.value as StyleType)}
+                    className="w-full px-3 py-2 rounded-md border border-border bg-input text-foreground text-sm"
+                  >
+                    <option value="structured">Structured</option>
+                    <option value="narrative">Narrative</option>
+                    <option value="step-by-step">Step-by-Step</option>
+                  </select>
+                </div>
+              </div>
+
               <Button
                 onClick={handleOptimize}
-                disabled={!prompt.trim()}
+                disabled={!prompt.trim() || isLoading}
                 className="w-full"
               >
-                <Lightbulb className="w-4 h-4 mr-2" />
-                Optimize Prompt
+                {isLoading ? (
+                  <>
+                    <Loader className="w-4 h-4 mr-2 animate-spin" />
+                    Optimizing...
+                  </>
+                ) : (
+                  <>
+                    <Lightbulb className="w-4 h-4 mr-2" />
+                    Optimize Prompt
+                  </>
+                )}
               </Button>
             </CardContent>
           </Card>
@@ -120,13 +191,25 @@ export function PromptOptimizerPanel() {
           <Card className="border-border">
             <CardHeader>
               <CardTitle>Optimized Prompt</CardTitle>
-              <CardDescription>Your enhanced prompt</CardDescription>
+              <CardDescription>Your AI-enhanced prompt</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="min-h-48 bg-input border border-border rounded-lg p-4 text-foreground whitespace-pre-wrap break-words">
-                {optimized || 'Optimized prompt will appear here...'}
+              <div className="min-h-48 bg-input border border-border rounded-lg p-4 text-foreground whitespace-pre-wrap break-words text-sm">
+                {isLoading && !optimized && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Loader className="w-4 h-4 animate-spin" />
+                    Optimizing your prompt...
+                  </div>
+                )}
+                {error && (
+                  <div className="text-destructive">Error: {error}</div>
+                )}
+                {optimized && !error && optimized}
+                {!optimized && !isLoading && !error && (
+                  <span className="text-muted-foreground">Optimized prompt will appear here...</span>
+                )}
               </div>
-              {optimized && (
+              {optimized && !error && (
                 <Button
                   onClick={handleCopyOptimized}
                   variant="outline"
@@ -172,7 +255,7 @@ export function PromptOptimizerPanel() {
         {/* Templates Section */}
         <div>
           <h2 className="text-2xl font-bold text-foreground mb-4">Prompt Templates</h2>
-          <div className="space-y-3">
+          <div className="grid md:grid-cols-2 gap-3">
             {promptTemplates.map((tmpl) => (
               <Card
                 key={tmpl.name}
@@ -183,7 +266,7 @@ export function PromptOptimizerPanel() {
                   <CardTitle className="text-base">{tmpl.name}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <code className="text-xs text-muted-foreground">{tmpl.template}</code>
+                  <code className="text-xs text-muted-foreground line-clamp-2">{tmpl.template}</code>
                 </CardContent>
               </Card>
             ))}
