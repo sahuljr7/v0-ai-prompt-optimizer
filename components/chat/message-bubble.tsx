@@ -81,7 +81,7 @@ export function MessageBubble({
               : 'bg-secondary text-secondary-foreground'
           }`}
         >
-        {isUser ? (
+          {isUser ? (
           <div className="whitespace-pre-wrap">
             {content}
             {isEdited && <span className="text-xs ml-2 italic opacity-70">(edited)</span>}
@@ -153,20 +153,21 @@ export function MessageBubble({
               {content}
             </ReactMarkdown>
           </div>
-        )}
-        {attachments && attachments.length > 0 && (
-          <div className="mt-3 space-y-2">
-            {attachments.map((file, idx) => (
-              <div
-                key={idx}
-                className="flex items-center gap-2 p-2 rounded bg-black/20 text-xs"
-              >
-                <span>📎</span>
-                <span>{file.name}</span>
-              </div>
-            ))}
-          </div>
-        )}
+          )}
+          {attachments && attachments.length > 0 && (
+            <div className="mt-3 space-y-2">
+              {attachments.map((file, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center gap-2 p-2 rounded bg-black/20 text-xs"
+                >
+                  <span>📎</span>
+                  <span>{file.name}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
       {isUser && (
         <MessageActions
