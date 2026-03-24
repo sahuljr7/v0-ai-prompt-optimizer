@@ -1,9 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import remarkGfm from 'remark-gfm';
+import { Copy, Check } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface MessageBubbleProps {
   role: 'user' | 'assistant';
@@ -12,9 +15,31 @@ interface MessageBubbleProps {
 
 export function MessageBubble({ role, content }: MessageBubbleProps) {
   const isUser = role === 'user';
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} gap-2`}>
+      {!isUser && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleCopy}
+          className="mt-1 h-auto p-1 text-muted-foreground hover:text-foreground"
+          title={copied ? 'Copied!' : 'Copy message'}
+        >
+          {copied ? (
+            <Check className="w-4 h-4" />
+          ) : (
+            <Copy className="w-4 h-4" />
+          )}
+        </Button>
+      )}
       <div
         className={`max-w-2xl px-4 py-3 rounded-lg ${
           isUser

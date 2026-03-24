@@ -5,7 +5,6 @@ import { MessageBubble } from './message-bubble';
 import { ChatInput } from './chat-input';
 import { useChat } from '@/hooks/use-chat';
 import { useBackendChat } from '@/hooks/use-backend-chat';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 export function ChatWindow() {
   const { messages, addMessage, addStreamingMessage, updateLastMessage } = useChat();
@@ -13,15 +12,23 @@ export function ChatWindow() {
     temperature: 0.7,
     maxTokens: 2048,
   });
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Auto-scroll to bottom when messages change
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollIntoView({ behavior: 'smooth' });
+  // Auto-scroll to bottom - always during loading, only if at bottom when not loading
+  const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior });
     }
-  }, [messages]);
+  };
+
+  useEffect(() => {
+    // Always scroll to bottom when loading
+    if (isLoading) {
+      scrollToBottom('smooth');
+    }
+  }, [isLoading, messages]);
 
   const handleSendMessage = async (text: string) => {
     if (!text.trim()) {
@@ -56,7 +63,10 @@ export function ChatWindow() {
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-hidden flex flex-col">
-        <ScrollArea className="flex-1">
+        <div
+          ref={messagesContainerRef}
+          className="flex-1 overflow-y-auto scroll-smooth"
+        >
           <div className="p-6 space-y-4">
             {messages.length === 0 ? (
               <div className="h-full flex items-center justify-center">
@@ -74,9 +84,9 @@ export function ChatWindow() {
                 <MessageBubble key={idx} role={msg.role} content={msg.content} />
               ))
             )}
-            <div ref={scrollRef} />
+            <div ref={messagesEndRef} />
           </div>
-        </ScrollArea>
+        </div>
       </div>
 
       <div className="border-t border-border p-4 bg-card">
