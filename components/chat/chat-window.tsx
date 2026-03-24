@@ -1,34 +1,55 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { RotateCcw, Square } from 'lucide-react';
 import { MessageBubble } from './message-bubble';
 import { ChatInput } from './chat-input';
+import { TypingIndicator } from './typing-indicator';
+import { Button } from '@/components/ui/button';
 import { useChat } from '@/hooks/use-chat';
 import { useBackendChat } from '@/hooks/use-backend-chat';
+import { useGlobalShortcuts } from '@/hooks/use-global-shortcuts';
 
 export function ChatWindow() {
   const { messages, addMessage, addStreamingMessage, updateLastMessage } = useChat();
-  const { generateResponse } = useBackendChat({
+  const { generateResponse, stopGeneration } = useBackendChat({
     temperature: 0.7,
     maxTokens: 2048,
   });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [userHasScrolled, setUserHasScrolled] = useState(false);
+  const lastUserMessageRef = useRef<string>('');
 
-  // Auto-scroll to bottom - always during loading, only if at bottom when not loading
+  // Global keyboard shortcuts
+  useGlobalShortcuts({
+    focusInput: () => textareaRef.current?.focus(),
+  });
+
+  // Smart auto-scroll: only scroll if user hasn't manually scrolled up
   const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
-    if (messagesEndRef.current) {
+    if (messagesEndRef.current && !userHasScrolled) {
       messagesEndRef.current.scrollIntoView({ behavior });
     }
   };
 
+  // Detect if user scrolled up
+  const handleScroll = () => {
+    if (!messagesContainerRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
+    const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
+    setUserHasScrolled(!isAtBottom);
+  };
+
   useEffect(() => {
-    // Always scroll to bottom when loading
-    if (isLoading) {
+    // Auto-scroll when messages change
+    if (!userHasScrolled) {
       scrollToBottom('smooth');
     }
-  }, [isLoading, messages]);
+  }, [messages, userHasScrolled]);
 
   const handleSendMessage = async (text: string) => {
     if (!text.trim()) {
@@ -37,6 +58,10 @@ export function ChatWindow() {
 
     try {
       setIsLoading(true);
+      setError(null);
+      setUserHasScrolled(false);
+      lastUserMessageRef.current = text;
+      
       addMessage({ role: 'user', content: text });
       addStreamingMessage({ role: 'assistant', content: '' });
 
@@ -47,14 +72,55 @@ export function ChatWindow() {
             ...prev,
             content: (prev?.content || '') + chunk,
           }));
+        },
+        (err) => {
+          setError(err.message);
+          updateLastMessage((prev) => ({
+            ...prev,
+            content: `Error: ${err.message}`,
+          }));
         }
       );
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to generate response';
+      setError(message);
       console.error('Error generating response:', error);
-      updateLastMessage((prev) => ({
-        ...prev,
-        content: (prev?.content || '') + '\n\n[Error: Failed to generate response]',
-      }));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRegenerateResponse = async () => {
+    if (!lastUserMessageRef.current || messages.length < 2) {
+      return;
+    }
+
+    // Remove the last assistant message
+    const updatedMessages = messages.slice(0, -1);
+    
+    try {
+      setIsLoading(true);
+      setError(null);
+      setUserHasScrolled(false);
+      
+      addStreamingMessage({ role: 'assistant', content: '' });
+
+      await generateResponse(
+        updatedMessages,
+        (chunk) => {
+          updateLastMessage((prev) => ({
+            ...prev,
+            content: (prev?.content || '') + chunk,
+          }));
+        },
+        (err) => {
+          setError(err.message);
+        }
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to regenerate response';
+      setError(message);
+      console.error('Error regenerating response:', error);
     } finally {
       setIsLoading(false);
     }
@@ -66,6 +132,7 @@ export function ChatWindow() {
         <div
           ref={messagesContainerRef}
           className="flex-1 overflow-y-auto scroll-smooth"
+          onScroll={handleScroll}
         >
           <div className="p-6 space-y-4">
             {messages.length === 0 ? (
@@ -80,20 +147,66 @@ export function ChatWindow() {
                 </div>
               </div>
             ) : (
-              messages.map((msg, idx) => (
-                <MessageBubble key={idx} role={msg.role} content={msg.content} />
-              ))
+              <>
+                {messages.map((msg, idx) => (
+                  <MessageBubble key={idx} role={msg.role} content={msg.content} />
+                ))}
+                {isLoading && <TypingIndicator />}
+              </>
             )}
             <div ref={messagesEndRef} />
           </div>
         </div>
       </div>
 
-      <div className="border-t border-border p-4 bg-card">
-        <ChatInput
-          onSend={handleSendMessage}
-          isLoading={isLoading}
-        />
+      {error && (
+        <div className="border-t border-border p-3 bg-destructive/10 text-destructive text-sm flex items-center justify-between">
+          <span>{error}</span>
+          {messages.length >= 2 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleRegenerateResponse}
+              disabled={isLoading}
+              className="ml-2"
+            >
+              <RotateCcw className="w-4 h-4 mr-1" />
+              Retry
+            </Button>
+          )}
+        </div>
+      )}
+
+      <div className="border-t border-border p-4 bg-card space-y-3">
+        {isLoading && (
+          <Button
+            onClick={stopGeneration}
+            variant="outline"
+            className="w-full"
+            size="sm"
+          >
+            <Square className="w-4 h-4 mr-2" />
+            Stop Generation
+          </Button>
+        )}
+        <div className="flex gap-2">
+          <div className="flex-1">
+            <ChatInput
+              onSend={handleSendMessage}
+              isLoading={isLoading}
+              ref={textareaRef}
+            />
+          </div>
+          {messages.length >= 2 && !isLoading && (
+            <Button
+              onClick={handleRegenerateResponse}
+              variant="outline"
+              title="Regenerate last response"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

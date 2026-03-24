@@ -1,17 +1,28 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 
 interface ChatInputProps {
   onSend: (message: string) => void;
   isLoading: boolean;
+  ref?: React.RefObject<HTMLTextAreaElement>;
 }
 
-export function ChatInput({ onSend, isLoading }: ChatInputProps) {
+export const ChatInput = ({ onSend, isLoading, ref: externalRef }: ChatInputProps) => {
   const [input, setInput] = useState('');
+  const textareaRef = externalRef || useRef<HTMLTextAreaElement>(null);
+
+  // Auto-resize textarea based on content
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      const scrollHeight = textareaRef.current.scrollHeight;
+      textareaRef.current.style.height = Math.min(scrollHeight, 200) + 'px';
+    }
+  }, [input]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,9 +32,9 @@ export function ChatInput({ onSend, isLoading }: ChatInputProps) {
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     // Submit on Enter, allow Shift+Enter for new line
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
       e.preventDefault();
       handleSubmit(e as any);
     }
@@ -34,32 +45,34 @@ export function ChatInput({ onSend, isLoading }: ChatInputProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-3">
-      <Input
+    <form onSubmit={handleSubmit} className="flex gap-2 items-end">
+      <Textarea
+        ref={textareaRef}
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder="Type your message... (Shift+Enter for new line)"
+        placeholder="Type your message... (Shift+Enter for new line, Esc to clear)"
         disabled={isLoading}
-        className="flex-1 bg-input border-border"
+        className="flex-1 bg-input border-border resize-none min-h-12 max-h-48"
+        rows={1}
       />
       <Button
         type="submit"
         disabled={isLoading || !input.trim()}
-        className="gap-2"
+        className="gap-2 h-12"
       >
         {isLoading ? (
           <>
             <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-            Thinking...
+            <span className="hidden sm:inline">Thinking...</span>
           </>
         ) : (
           <>
             <Send className="w-4 h-4" />
-            Send
+            <span className="hidden sm:inline">Send</span>
           </>
         )}
       </Button>
     </form>
   );
-}
+};
