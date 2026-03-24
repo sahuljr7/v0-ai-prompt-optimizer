@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { RotateCcw, Square, Download, Share2 } from 'lucide-react';
+import { RotateCcw, Square } from 'lucide-react';
 import { MessageBubble } from './message-bubble';
 import { ChatInput } from './chat-input';
 import { TypingIndicator } from './typing-indicator';
@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { useChat } from '@/hooks/use-chat';
 import { useBackendChat } from '@/hooks/use-backend-chat';
 import { useGlobalShortcuts } from '@/hooks/use-global-shortcuts';
-import { exportToMarkdown, downloadMarkdown, generateShareId, createShareUrl } from '@/lib/chat-utils';
+import { generateShareId, createShareUrl } from '@/lib/chat-utils';
 
 export function ChatWindow() {
   const { messages, addMessage, addStreamingMessage, updateLastMessage, updateMessage } = useChat();
@@ -170,27 +170,7 @@ export function ChatWindow() {
     }
   };
 
-  const handleExportChat = () => {
-    const markdown = exportToMarkdown(messages);
-    const timestamp = new Date().toISOString().split('T')[0];
-    downloadMarkdown(markdown, `chat-${timestamp}.md`);
-  };
 
-  const handleShareChat = () => {
-    if (shareId) {
-      const url = createShareUrl(shareId);
-      navigator.clipboard.writeText(url);
-      setShareCopied(true);
-      setTimeout(() => setShareCopied(false), 2000);
-    } else {
-      const newShareId = generateShareId();
-      setShareId(newShareId);
-      const url = createShareUrl(newShareId);
-      navigator.clipboard.writeText(url);
-      setShareCopied(true);
-      setTimeout(() => setShareCopied(false), 2000);
-    }
-  };
 
   return (
     <div className="flex flex-col h-full">
@@ -200,14 +180,14 @@ export function ChatWindow() {
           className="flex-1 overflow-y-auto scroll-smooth"
           onScroll={handleScroll}
         >
-          <div className="p-6 space-y-4">
+          <div className="p-3 sm:p-4 md:p-6 space-y-4">
             {messages.length === 0 ? (
-              <div className="h-full flex items-center justify-center">
+              <div className="h-full flex items-center justify-center px-4">
                 <div className="text-center space-y-3">
-                  <h2 className="text-2xl font-bold text-foreground">
+                  <h2 className="text-xl sm:text-2xl font-bold text-foreground">
                     Welcome to AI Chat
                   </h2>
-                  <p className="text-muted-foreground max-w-md">
+                  <p className="text-sm sm:text-base text-muted-foreground max-w-md">
                     Start typing to begin your conversation with the AI assistant.
                   </p>
                 </div>
@@ -215,17 +195,16 @@ export function ChatWindow() {
             ) : (
               <>
                 {messages.map((msg) => (
-                  <MessageBubble
-                    key={msg.id}
-                    id={msg.id}
-                    role={msg.role}
-                    content={msg.content}
-                    isEdited={msg.isEdited}
-                    attachments={msg.attachments}
-                    onEdit={msg.role === 'user' ? handleEditMessage : undefined}
-                    onExport={handleExportChat}
-                    onShare={handleShareChat}
-                  />
+                  <div key={msg.id} className="group">
+                    <MessageBubble
+                      id={msg.id}
+                      role={msg.role}
+                      content={msg.content}
+                      isEdited={msg.isEdited}
+                      attachments={msg.attachments}
+                      onEdit={msg.role === 'user' ? handleEditMessage : undefined}
+                    />
+                  </div>
                 ))}
                 {isLoading && <TypingIndicator />}
               </>
@@ -234,29 +213,6 @@ export function ChatWindow() {
           </div>
         </div>
       </div>
-
-      {messages.length > 0 && (
-        <div className="border-t border-border p-3 bg-card flex gap-2 justify-end">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleExportChat}
-            title="Download conversation as markdown"
-          >
-            <Download className="w-4 h-4 mr-1" />
-            Export
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleShareChat}
-            title="Generate shareable link"
-          >
-            <Share2 className="w-4 h-4 mr-1" />
-            {shareCopied ? 'Copied!' : 'Share'}
-          </Button>
-        </div>
-      )}
 
       {error && (
         <div className="border-t border-border p-3 bg-destructive/10 text-destructive text-sm flex items-center justify-between">
@@ -276,7 +232,7 @@ export function ChatWindow() {
         </div>
       )}
 
-      <div className="border-t border-border p-4 bg-card space-y-3">
+      <div className="border-t border-border p-3 sm:p-4 bg-card space-y-2 sm:space-y-3">
         {isLoading && (
           <Button
             onClick={stopGeneration}
@@ -285,10 +241,11 @@ export function ChatWindow() {
             size="sm"
           >
             <Square className="w-4 h-4 mr-2" />
-            Stop Generation
+            <span className="hidden sm:inline">Stop Generation</span>
+            <span className="sm:hidden">Stop</span>
           </Button>
         )}
-        <div className="flex gap-2">
+        <div className="flex gap-1 sm:gap-2 items-end">
           <div className="flex-1">
             <ChatInput
               onSend={handleSendMessage}
@@ -300,7 +257,9 @@ export function ChatWindow() {
             <Button
               onClick={handleRegenerateResponse}
               variant="outline"
+              size="sm"
               title="Regenerate last response"
+              className="px-2 sm:px-3"
             >
               <RotateCcw className="w-4 h-4" />
             </Button>

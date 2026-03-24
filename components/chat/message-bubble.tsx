@@ -17,8 +17,6 @@ interface MessageBubbleProps {
   isEdited?: boolean;
   attachments?: Array<{ name: string; size: number; type: string }>;
   onEdit?: (messageId: string, newContent: string) => void;
-  onExport?: () => void;
-  onShare?: () => void;
 }
 
 export function MessageBubble({
@@ -28,8 +26,6 @@ export function MessageBubble({
   isEdited,
   attachments,
   onEdit,
-  onExport,
-  onShare,
 }: MessageBubbleProps) {
   const isUser = role === 'user';
   const [copied, setCopied] = useState(false);
@@ -63,31 +59,29 @@ export function MessageBubble({
   }
 
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} gap-2`}>
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} gap-1 sm:gap-2 px-3 sm:px-6`}>
       {!isUser && (
         <MessageActions
           content={content}
           messageId={id}
           isUser={false}
-          onExport={onExport}
-          onShare={onShare}
         />
       )}
-      <div>
+      <div className="flex-1 sm:flex-none">
         <div
-          className={`max-w-2xl px-4 py-3 rounded-lg ${
+          className={`max-w-xs sm:max-w-md md:max-w-2xl px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-sm sm:text-base break-words ${
             isUser
               ? 'bg-primary text-primary-foreground'
               : 'bg-secondary text-secondary-foreground'
           }`}
         >
           {isUser ? (
-          <div className="whitespace-pre-wrap">
-            {content}
-            {isEdited && <span className="text-xs ml-2 italic opacity-70">(edited)</span>}
-          </div>
-        ) : (
-          <div className="prose prose-invert max-w-none">
+            <div className="whitespace-pre-wrap">
+              {content}
+              {isEdited && <span className="text-xs ml-2 italic opacity-70">(edited)</span>}
+            </div>
+          ) : (
+            <div className="prose prose-invert prose-sm sm:prose-base max-w-none">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
@@ -152,7 +146,7 @@ export function MessageBubble({
             >
               {content}
             </ReactMarkdown>
-          </div>
+            </div>
           )}
           {attachments && attachments.length > 0 && (
             <div className="mt-3 space-y-2">
