@@ -5,9 +5,10 @@ import { AppShell } from '@/components/layout/app-shell';
 import { ChatWindow } from '@/components/chat/chat-window';
 import { ChatHistorySidebar } from '@/components/chat/chat-history-sidebar';
 import { PromptOptimizerPanel } from '@/components/optimizer/prompt-optimizer-panel';
+import { TranscriptAnalyzerPanel } from '@/components/transcript/transcript-analyzer-panel';
 import { useConversations } from '@/hooks/use-conversations';
 
-type TabType = 'chat' | 'optimizer';
+type TabType = 'chat' | 'optimizer' | 'transcript';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<TabType>('chat');
@@ -70,6 +71,7 @@ export default function Home() {
         </div>
       )}
       {activeTab === 'optimizer' && <PromptOptimizerPanel />}
+      {activeTab === 'transcript' && <TranscriptAnalyzerPanel />}
     </AppShell>
   );
 }
