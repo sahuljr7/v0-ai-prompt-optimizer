@@ -122,7 +122,20 @@ If the input is not a valid transcript or contains insufficient information, res
 ## Optional Enhancements
 - Detect sentiment (e.g., concerns, urgency)
 - Tag priority levels (High / Medium / Low)
-- Identify risks or blockers`;
+- Identify risks or blockers
+
+## Language Handling
+The input transcription may contain content in Hindi or other languages. However, the final output must prioritize the **user's preferred language** (English by default).
+
+Ensure that:
+- The transcription is accurately interpreted regardless of the original language.
+- The final response is **fully translated and presented in English** (or the user's preferred language if specified).
+- No parts of the output remain in the original language unless explicitly requested by the user.
+- Meaning, tone, and context are preserved during translation.
+- Mixed-language inputs are normalized into a **single, consistent English output**.
+- Technical terms, proper nouns, and acronyms may remain in their original form if commonly used that way.
+
+The user's preferred language must always take precedence over the source language of the transcription.`;
 
 // Simple in-memory rate limiter
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
