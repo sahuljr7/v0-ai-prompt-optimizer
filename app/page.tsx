@@ -6,8 +6,9 @@ import { ChatWindow } from '@/components/chat/chat-window';
 import { ChatHistorySidebar } from '@/components/chat/chat-history-sidebar';
 import { PromptOptimizerPanel } from '@/components/optimizer/prompt-optimizer-panel';
 import { useConversations } from '@/hooks/use-conversations';
+import { TranscriptAnalyzerPanel } from '@/components/analyzer/transcript-analyzer-panel';
 
-type TabType = 'chat' | 'optimizer';
+type TabType = 'chat' | 'optimizer' | 'analyzer';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<TabType>('chat');
@@ -70,6 +71,7 @@ export default function Home() {
         </div>
       )}
       {activeTab === 'optimizer' && <PromptOptimizerPanel />}
+      {activeTab === 'analyzer' && <TranscriptAnalyzerPanel />}
     </AppShell>
   );
 }

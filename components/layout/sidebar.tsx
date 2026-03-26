@@ -1,9 +1,9 @@
 'use client';
 
-import { MessageCircle, Sparkles } from 'lucide-react';
+import { MessageCircle, Sparkles, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-type TabType = 'chat' | 'optimizer';
+type TabType = 'chat' | 'optimizer' | 'analyzer';
 
 interface SidebarProps {
   activeTab: TabType;
@@ -15,6 +15,7 @@ export function Sidebar({ activeTab, onTabChange, isMobile = false }: SidebarPro
   const navItems = [
     { id: 'chat' as TabType, label: 'Chat', icon: MessageCircle },
     { id: 'optimizer' as TabType, label: 'Optimizer', icon: Sparkles },
+    { id: 'analyzer' as TabType, label: 'Analyzer', icon: FileText },
   ];
 
   return (
