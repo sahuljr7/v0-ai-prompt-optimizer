@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
-import { Lightbulb, Copy, Check, Loader } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Lightbulb, Copy, Check, Loader, Trash2, Plus, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { usePromptOptimizer } from '@/hooks/use-prompt-optimizer';
+import { useOptimizerSessions } from '@/hooks/use-optimizer-sessions';
 
 type ToneType = 'professional' | 'casual' | 'creative' | 'technical';
 type StyleType = 'structured' | 'narrative' | 'step-by-step';
@@ -75,7 +76,59 @@ export function PromptOptimizerPanel() {
   const [tone, setTone] = useState<ToneType>('professional');
   const [style, setStyle] = useState<StyleType>('structured');
   const [error, setError] = useState('');
+  const [showSessions, setShowSessions] = useState(false);
   const { optimizePrompt } = usePromptOptimizer();
+  const {
+    sessions,
+    activeSessionId,
+    isLoaded,
+    createOptimizationSession,
+    getActiveSession,
+    updateSessionPrompt,
+    updateSessionOptimized,
+    updateSessionOptions,
+    updateSessionTitle,
+    deleteSession,
+    switchSession,
+  } = useOptimizerSessions();
+
+  // Load active session data on mount and when switching sessions
+  useEffect(() => {
+    if (isLoaded && activeSessionId) {
+      const activeSession = getActiveSession();
+      if (activeSession) {
+        setPrompt(activeSession.data.prompt);
+        setOptimized(activeSession.data.optimized);
+        setTone(activeSession.data.tone);
+        setStyle(activeSession.data.style);
+      }
+    } else if (isLoaded && !activeSessionId && sessions.length === 0) {
+      // Create first session if none exist
+      createOptimizationSession();
+    } else if (isLoaded && !activeSessionId && sessions.length > 0) {
+      // Switch to first session if none active
+      switchSession(sessions[0].id);
+    }
+  }, [isLoaded, activeSessionId, sessions.length, getActiveSession, createOptimizationSession, switchSession]);
+
+  // Persist changes to session
+  useEffect(() => {
+    if (activeSessionId && isLoaded) {
+      updateSessionPrompt(prompt);
+    }
+  }, [prompt, activeSessionId, isLoaded, updateSessionPrompt]);
+
+  useEffect(() => {
+    if (activeSessionId && isLoaded) {
+      updateSessionOptimized(optimized);
+    }
+  }, [optimized, activeSessionId, isLoaded, updateSessionOptimized]);
+
+  useEffect(() => {
+    if (activeSessionId && isLoaded) {
+      updateSessionOptions(tone, style);
+    }
+  }, [tone, style, activeSessionId, isLoaded, updateSessionOptions]);
 
   const handleOptimize = async () => {
     if (!prompt.trim()) return;
@@ -109,9 +162,74 @@ export function PromptOptimizerPanel() {
 
   return (
     <div className="flex-1 overflow-auto">
-      <div className="p-6 max-w-5xl mx-auto space-y-6">
+      <div className="flex h-full">
+        {/* Sessions Sidebar */}
+        <div className={`${showSessions ? 'w-64' : 'w-0'} overflow-hidden transition-all duration-300 border-r border-border bg-card`}>
+          <div className="h-full flex flex-col">
+            <div className="p-4 border-b border-border">
+              <Button
+                onClick={() => createOptimizationSession()}
+                className="w-full gap-2"
+                size="sm"
+              >
+                <Plus className="w-4 h-4" />
+                New Session
+              </Button>
+            </div>
+            <div className="flex-1 overflow-auto">
+              <div className="p-2 space-y-2">
+                {sessions.map((session) => (
+                  <div
+                    key={session.id}
+                    className={`p-3 rounded-lg cursor-pointer transition-colors group ${
+                      activeSessionId === session.id
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-secondary hover:bg-secondary/80'
+                    }`}
+                    onClick={() => switchSession(session.id)}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{session.title}</p>
+                        <p className={`text-xs ${activeSessionId === session.id ? 'text-primary-foreground/70' : 'text-muted-foreground'} line-clamp-2`}>
+                          {session.data.prompt || 'No prompt yet'}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteSession(session.id);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 overflow-auto">
+          <div className="p-6 max-w-5xl mx-auto space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Prompt Optimizer</h1>
+          <div className="flex items-center justify-between mb-2">
+            <h1 className="text-3xl font-bold text-foreground">Prompt Optimizer</h1>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowSessions(!showSessions)}
+              className="gap-2"
+            >
+              <MessageSquare className="w-4 h-4" />
+              {showSessions ? 'Hide' : 'Show'} Sessions
+            </Button>
+          </div>
           <p className="text-muted-foreground">
             Transform vague prompts into powerful, specific instructions for better AI results
           </p>

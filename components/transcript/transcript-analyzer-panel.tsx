@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { 
   FileText, 
   Upload, 
@@ -10,7 +10,10 @@ import {
   Check, 
   Square,
   AlertCircle,
-  FileUp
+  FileUp,
+  Trash2,
+  Plus,
+  MessageSquare
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -18,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTranscriptAnalyzer } from '@/hooks/use-transcript-analyzer';
+import { useTranscriptSessions } from '@/hooks/use-transcript-sessions';
 
 const ALLOWED_EXTENSIONS = ['pdf', 'txt', 'docx'];
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -35,9 +39,60 @@ export function TranscriptAnalyzerPanel() {
   const [error, setError] = useState('');
   const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [showSessions, setShowSessions] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { analyzeTranscript, stopAnalysis, isAnalyzing } = useTranscriptAnalyzer();
+  const {
+    sessions,
+    activeSessionId,
+    isLoaded,
+    createTranscriptSession,
+    getActiveSession,
+    updateSessionTranscript,
+    updateSessionAnalysis,
+    updateSessionFileInfo,
+    updateSessionTitle,
+    deleteSession,
+    switchSession,
+  } = useTranscriptSessions();
+
+  // Load active session data on mount and when switching sessions
+  useEffect(() => {
+    if (isLoaded && activeSessionId) {
+      const activeSession = getActiveSession();
+      if (activeSession) {
+        setTranscript(activeSession.data.transcript);
+        setAnalysis(activeSession.data.analysis);
+        if (activeSession.data.uploadedFileName) {
+          setUploadedFile({
+            name: activeSession.data.uploadedFileName,
+            size: activeSession.data.uploadedFileSize || 0,
+            content: activeSession.data.transcript,
+          });
+        }
+      }
+    } else if (isLoaded && !activeSessionId && sessions.length === 0) {
+      // Create first session if none exist
+      createTranscriptSession();
+    } else if (isLoaded && !activeSessionId && sessions.length > 0) {
+      // Switch to first session if none active
+      switchSession(sessions[0].id);
+    }
+  }, [isLoaded, activeSessionId, sessions.length, getActiveSession, createTranscriptSession, switchSession]);
+
+  // Persist changes to session
+  useEffect(() => {
+    if (activeSessionId && isLoaded) {
+      updateSessionTranscript(transcript);
+    }
+  }, [transcript, activeSessionId, isLoaded, updateSessionTranscript]);
+
+  useEffect(() => {
+    if (activeSessionId && isLoaded) {
+      updateSessionAnalysis(analysis);
+    }
+  }, [analysis, activeSessionId, isLoaded, updateSessionAnalysis]);
 
   const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -84,6 +139,10 @@ export function TranscriptAnalyzerPanel() {
         content,
       });
       setTranscript(content);
+      // Save file info to session
+      if (activeSessionId && isLoaded) {
+        updateSessionFileInfo(file.name, file.size);
+      }
     } catch (err) {
       setError('Failed to read file. Please try copying the text directly.');
     } finally {
@@ -92,14 +151,12 @@ export function TranscriptAnalyzerPanel() {
         fileInputRef.current.value = '';
       }
     }
-  }, []);
+  }, [updateSessionFileInfo, activeSessionId, isLoaded]);
 
   const removeFile = useCallback(() => {
     setUploadedFile(null);
     setTranscript('');
   }, []);
-
-  const handleAnalyze = async () => {
     if (!transcript.trim()) {
       setError('Please enter or upload a transcript to analyze.');
       return;
@@ -133,10 +190,75 @@ export function TranscriptAnalyzerPanel() {
 
   return (
     <div className="flex-1 overflow-auto">
-      <div className="p-6 max-w-6xl mx-auto space-y-6">
+      <div className="flex h-full">
+        {/* Sessions Sidebar */}
+        <div className={`${showSessions ? 'w-64' : 'w-0'} overflow-hidden transition-all duration-300 border-r border-border bg-card`}>
+          <div className="h-full flex flex-col">
+            <div className="p-4 border-b border-border">
+              <Button
+                onClick={() => createTranscriptSession()}
+                className="w-full gap-2"
+                size="sm"
+              >
+                <Plus className="w-4 h-4" />
+                New Session
+              </Button>
+            </div>
+            <div className="flex-1 overflow-auto">
+              <div className="p-2 space-y-2">
+                {sessions.map((session) => (
+                  <div
+                    key={session.id}
+                    className={`p-3 rounded-lg cursor-pointer transition-colors group ${
+                      activeSessionId === session.id
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-secondary hover:bg-secondary/80'
+                    }`}
+                    onClick={() => switchSession(session.id)}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{session.title}</p>
+                        <p className={`text-xs ${activeSessionId === session.id ? 'text-primary-foreground/70' : 'text-muted-foreground'} line-clamp-2`}>
+                          {session.data.transcript || 'No transcript yet'}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteSession(session.id);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 overflow-auto">
+          <div className="p-6 max-w-6xl mx-auto space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Meeting Transcript Analyzer</h1>
+          <div className="flex items-center justify-between mb-2">
+            <h1 className="text-3xl font-bold text-foreground">Meeting Transcript Analyzer</h1>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowSessions(!showSessions)}
+              className="gap-2"
+            >
+              <MessageSquare className="w-4 h-4" />
+              {showSessions ? 'Hide' : 'Show'} Sessions
+            </Button>
+          </div>
           <p className="text-muted-foreground">
             Upload or paste your meeting transcript to extract key insights, action items, and summaries
           </p>
@@ -390,6 +512,8 @@ Sarah: We can have a prototype ready by end of November..."
             </ul>
           </CardContent>
         </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
