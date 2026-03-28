@@ -157,6 +157,8 @@ export function TranscriptAnalyzerPanel() {
     setUploadedFile(null);
     setTranscript('');
   }, []);
+
+  const handleAnalyze = async () => {
     if (!transcript.trim()) {
       setError('Please enter or upload a transcript to analyze.');
       return;
@@ -512,8 +514,7 @@ Sarah: We can have a prototype ready by end of November..."
             </ul>
           </CardContent>
         </Card>
-          </div>
-        </div>
+      </div>
       </div>
     </div>
   );

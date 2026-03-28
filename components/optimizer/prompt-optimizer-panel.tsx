@@ -87,7 +87,6 @@ export function PromptOptimizerPanel() {
     updateSessionPrompt,
     updateSessionOptimized,
     updateSessionOptions,
-    updateSessionTitle,
     deleteSession,
     switchSession,
   } = useOptimizerSessions();
@@ -103,10 +102,8 @@ export function PromptOptimizerPanel() {
         setStyle(activeSession.data.style);
       }
     } else if (isLoaded && !activeSessionId && sessions.length === 0) {
-      // Create first session if none exist
       createOptimizationSession();
     } else if (isLoaded && !activeSessionId && sessions.length > 0) {
-      // Switch to first session if none active
       switchSession(sessions[0].id);
     }
   }, [isLoaded, activeSessionId, sessions.length, getActiveSession, createOptimizationSession, switchSession]);
@@ -217,180 +214,183 @@ export function PromptOptimizerPanel() {
         {/* Main Content */}
         <div className="flex-1 overflow-auto">
           <div className="p-6 max-w-5xl mx-auto space-y-6">
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <h1 className="text-3xl font-bold text-foreground">Prompt Optimizer</h1>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowSessions(!showSessions)}
-              className="gap-2"
-            >
-              <MessageSquare className="w-4 h-4" />
-              {showSessions ? 'Hide' : 'Show'} Sessions
-            </Button>
-          </div>
-          <p className="text-muted-foreground">
-            Transform vague prompts into powerful, specific instructions for better AI results
-          </p>
-        </div>
-
-        <div className="grid lg:grid-cols-2 gap-6">
-          {/* Input Section */}
-          <Card className="border-border">
-            <CardHeader>
-              <CardTitle>Your Prompt</CardTitle>
-              <CardDescription>Enter your initial prompt</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Textarea
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                placeholder="Type your prompt here..."
-                className="min-h-48 bg-input border-border"
-              />
-
-              {/* Tone and Style Controls */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="tone" className="text-sm">
-                    Tone
-                  </Label>
-                  <select
-                    id="tone"
-                    value={tone}
-                    onChange={(e) => setTone(e.target.value as ToneType)}
-                    className="w-full px-3 py-2 rounded-md border border-border bg-input text-foreground text-sm"
-                  >
-                    <option value="professional">Professional</option>
-                    <option value="casual">Casual</option>
-                    <option value="creative">Creative</option>
-                    <option value="technical">Technical</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="style" className="text-sm">
-                    Style
-                  </Label>
-                  <select
-                    id="style"
-                    value={style}
-                    onChange={(e) => setStyle(e.target.value as StyleType)}
-                    className="w-full px-3 py-2 rounded-md border border-border bg-input text-foreground text-sm"
-                  >
-                    <option value="structured">Structured</option>
-                    <option value="narrative">Narrative</option>
-                    <option value="step-by-step">Step-by-Step</option>
-                  </select>
-                </div>
-              </div>
-
-              <Button
-                onClick={handleOptimize}
-                disabled={!prompt.trim() || isLoading}
-                className="w-full"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader className="w-4 h-4 mr-2 animate-spin" />
-                    Optimizing...
-                  </>
-                ) : (
-                  <>
-                    <Lightbulb className="w-4 h-4 mr-2" />
-                    Optimize Prompt
-                  </>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Output Section */}
-          <Card className="border-border">
-            <CardHeader>
-              <CardTitle>Optimized Prompt</CardTitle>
-              <CardDescription>Your AI-enhanced prompt</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="min-h-48 bg-input border border-border rounded-lg p-4 text-foreground whitespace-pre-wrap break-words text-sm">
-                {isLoading && !optimized && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Loader className="w-4 h-4 animate-spin" />
-                    Optimizing your prompt...
-                  </div>
-                )}
-                {error && (
-                  <div className="text-destructive">Error: {error}</div>
-                )}
-                {optimized && !error && optimized}
-                {!optimized && !isLoading && !error && (
-                  <span className="text-muted-foreground">Optimized prompt will appear here...</span>
-                )}
-              </div>
-              {optimized && !error && (
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <h1 className="text-3xl font-bold text-foreground">Prompt Optimizer</h1>
                 <Button
-                  onClick={handleCopyOptimized}
                   variant="outline"
-                  className="w-full"
+                  size="sm"
+                  onClick={() => setShowSessions(!showSessions)}
+                  className="gap-2"
                 >
-                  {copied ? (
-                    <>
-                      <Check className="w-4 h-4 mr-2" />
-                      Copied!
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-4 h-4 mr-2" />
-                      Copy to Clipboard
-                    </>
-                  )}
+                  <MessageSquare className="w-4 h-4" />
+                  {showSessions ? 'Hide' : 'Show'} Sessions
                 </Button>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+              </div>
+              <p className="text-muted-foreground">
+                Transform vague prompts into powerful, specific instructions for better AI results
+              </p>
+            </div>
 
-        {/* Tips Section */}
-        <div>
-          <h2 className="text-2xl font-bold text-foreground mb-4">Optimization Tips</h2>
-          <div className="grid md:grid-cols-2 gap-4">
-            {optimizationTips.map((tip) => (
-              <Card key={tip.title} className="border-border">
+            <div className="grid lg:grid-cols-2 gap-6">
+              {/* Input Section */}
+              <Card className="border-border">
                 <CardHeader>
-                  <CardTitle className="text-lg">{tip.title}</CardTitle>
-                  <CardDescription>{tip.description}</CardDescription>
+                  <CardTitle>Your Prompt</CardTitle>
+                  <CardDescription>Enter your initial prompt</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <code className="text-xs bg-secondary p-3 rounded block whitespace-pre-wrap break-words">
-                    {tip.example}
-                  </code>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
+                <CardContent className="space-y-4">
+                  <Textarea
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    placeholder="Type your prompt here..."
+                    className="min-h-48 bg-input border-border"
+                  />
 
-        {/* Templates Section */}
-        <div>
-          <h2 className="text-2xl font-bold text-foreground mb-4">Prompt Templates</h2>
-          <div className="grid md:grid-cols-2 gap-3">
-            {promptTemplates.map((tmpl) => (
-              <Card
-                key={tmpl.name}
-                className="border-border cursor-pointer hover:bg-secondary/20 transition-colors"
-                onClick={() => handleSelectTemplate(tmpl.template)}
-              >
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">{tmpl.name}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <code className="text-xs text-muted-foreground line-clamp-2">{tmpl.template}</code>
+                  {/* Tone and Style Controls */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="tone" className="text-sm">
+                        Tone
+                      </Label>
+                      <select
+                        id="tone"
+                        value={tone}
+                        onChange={(e) => setTone(e.target.value as ToneType)}
+                        className="w-full px-3 py-2 rounded-md border border-border bg-input text-foreground text-sm"
+                      >
+                        <option value="professional">Professional</option>
+                        <option value="casual">Casual</option>
+                        <option value="creative">Creative</option>
+                        <option value="technical">Technical</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="style" className="text-sm">
+                        Style
+                      </Label>
+                      <select
+                        id="style"
+                        value={style}
+                        onChange={(e) => setStyle(e.target.value as StyleType)}
+                        className="w-full px-3 py-2 rounded-md border border-border bg-input text-foreground text-sm"
+                      >
+                        <option value="structured">Structured</option>
+                        <option value="narrative">Narrative</option>
+                        <option value="step-by-step">Step-by-Step</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={handleOptimize}
+                    disabled={!prompt.trim() || isLoading}
+                    className="w-full"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader className="w-4 h-4 mr-2 animate-spin" />
+                        Optimizing...
+                      </>
+                    ) : (
+                      <>
+                        <Lightbulb className="w-4 h-4 mr-2" />
+                        Optimize Prompt
+                      </>
+                    )}
+                  </Button>
                 </CardContent>
               </Card>
-            ))}
+
+              {/* Output Section */}
+              <Card className="border-border">
+                <CardHeader>
+                  <CardTitle>Optimized Prompt</CardTitle>
+                  <CardDescription>Your AI-enhanced prompt</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="min-h-48 bg-input border border-border rounded-lg p-4 text-foreground whitespace-pre-wrap break-words text-sm">
+                    {isLoading && !optimized && (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Loader className="w-4 h-4 animate-spin" />
+                        Optimizing your prompt...
+                      </div>
+                    )}
+                    {error && (
+                      <div className="text-destructive">Error: {error}</div>
+                    )}
+                    {optimized && !error && optimized}
+                    {!optimized && !isLoading && !error && (
+                      <span className="text-muted-foreground">Optimized prompt will appear here...</span>
+                    )}
+                  </div>
+                  {optimized && !error && (
+                    <Button
+                      onClick={handleCopyOptimized}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      {copied ? (
+                        <>
+                          <Check className="w-4 h-4 mr-2" />
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-4 h-4 mr-2" />
+                          Copy to Clipboard
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Tips Section */}
+            <div>
+              <h2 className="text-2xl font-bold text-foreground mb-4">Optimization Tips</h2>
+              <div className="grid md:grid-cols-2 gap-4">
+                {optimizationTips.map((tip) => (
+                  <Card key={tip.title} className="border-border">
+                    <CardHeader>
+                      <CardTitle className="text-lg">{tip.title}</CardTitle>
+                      <CardDescription>{tip.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <code className="text-xs bg-secondary p-3 rounded block whitespace-pre-wrap break-words">
+                        {tip.example}
+                      </code>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            {/* Templates Section */}
+            <div>
+              <h2 className="text-2xl font-bold text-foreground mb-4">Prompt Templates</h2>
+              <div className="grid md:grid-cols-2 gap-3">
+                {promptTemplates.map((tmpl) => (
+                  <Card
+                    key={tmpl.name}
+                    className="border-border cursor-pointer hover:bg-secondary/20 transition-colors"
+                    onClick={() => handleSelectTemplate(tmpl.template)}
+                  >
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base">{tmpl.name}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <code className="text-xs text-muted-foreground line-clamp-2">{tmpl.template}</code>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
+}
 }
