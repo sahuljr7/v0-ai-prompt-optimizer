@@ -393,4 +393,3 @@ export function PromptOptimizerPanel() {
     </div>
   );
 }
-}
