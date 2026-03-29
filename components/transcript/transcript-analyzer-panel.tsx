@@ -514,6 +514,9 @@ Sarah: We can have a prototype ready by end of November..."
             </ul>
           </CardContent>
         </Card>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
