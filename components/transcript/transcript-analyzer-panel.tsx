@@ -190,10 +190,10 @@ export function TranscriptAnalyzerPanel() {
   };
 
   return (
-    <div className="flex-1 overflow-auto">
+    <div className="flex-1 overflow-auto bg-background">
       <div className="flex h-full">
         {/* Sessions Sidebar */}
-        <div className={`${showSessions ? 'w-64' : 'w-0'} overflow-hidden transition-all duration-300 border-r border-border bg-card`}>
+        <div className={`${showSessions ? 'w-48 sm:w-56 lg:w-64' : 'w-0'} overflow-hidden transition-all duration-300 border-r border-border bg-card`}>
           <div className="h-full flex flex-col">
             <div className="p-4 border-b border-border">
               <Button
@@ -245,274 +245,285 @@ export function TranscriptAnalyzerPanel() {
 
         {/* Main Content */}
         <div className="flex-1 overflow-auto">
-          <div className="p-6 max-w-6xl mx-auto space-y-6">
-        {/* Header */}
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <h1 className="text-3xl font-bold text-foreground">Meeting Transcript Analyzer</h1>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowSessions(!showSessions)}
-              className="gap-2"
-            >
-              <MessageSquare className="w-4 h-4" />
-              {showSessions ? 'Hide' : 'Show'} Sessions
-            </Button>
-          </div>
-          <p className="text-muted-foreground">
-            Upload or paste your meeting transcript to extract key insights, action items, and summaries
-          </p>
-        </div>
-
-        {/* Error Alert */}
-        {error && (
-          <div className="flex items-center gap-3 p-4 rounded-lg bg-destructive/10 text-destructive border border-destructive/20">
-            <AlertCircle className="w-5 h-5 shrink-0" />
-            <p className="text-sm">{error}</p>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setError('')}
-              className="ml-auto p-1 h-auto"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
-        )}
-
-        <div className="grid lg:grid-cols-2 gap-6">
-          {/* Input Section */}
-          <Card className="border-border">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="w-5 h-5" />
-                Transcript Input
-              </CardTitle>
-              <CardDescription>
-                Upload a file or paste your meeting transcript
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* File Upload */}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept={ALLOWED_EXTENSIONS.map((ext) => `.${ext}`).join(',')}
-                onChange={handleFileChange}
-                className="hidden"
-              />
-
-              {uploadedFile ? (
-                <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-secondary/30">
-                  <div className="flex items-center gap-3">
-                    <FileUp className="w-5 h-5 text-primary" />
-                    <div>
-                      <p className="font-medium text-sm truncate max-w-[200px]">{uploadedFile.name}</p>
-                      <p className="text-xs text-muted-foreground">{formatFileSize(uploadedFile.size)}</p>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={removeFile}
-                    className="p-1 h-auto"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
+          <div className="p-4 sm:p-6 max-w-6xl mx-auto space-y-6">
+            {/* Header */}
+            <div>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+                <div className="flex-1">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Meeting Transcript Analyzer</h1>
+                  <p className="text-sm sm:text-base text-muted-foreground mt-1">
+                    Upload or paste your meeting transcript to extract key insights, action items, and summaries
+                  </p>
                 </div>
-              ) : (
                 <Button
                   variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isUploading}
-                  className="w-full gap-2"
+                  size="sm"
+                  onClick={() => setShowSessions(!showSessions)}
+                  className="gap-2 whitespace-nowrap"
                 >
-                  {isUploading ? (
-                    <>
-                      <Loader className="w-4 h-4 animate-spin" />
-                      Reading file...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="w-4 h-4" />
-                      Upload Transcript (PDF, DOCX, TXT)
-                    </>
-                  )}
+                  <MessageSquare className="w-4 h-4" />
+                  {showSessions ? 'Hide' : 'Show'} Sessions
                 </Button>
-              )}
-
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-border" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">Or paste text</span>
-                </div>
               </div>
+            </div>
 
-              <Textarea
-                value={transcript}
-                onChange={(e) => {
-                  setTranscript(e.target.value);
-                  if (uploadedFile) setUploadedFile(null);
-                }}
-                placeholder="Paste your meeting transcript here...
+            {/* Error Alert */}
+            {error && (
+              <div className="flex items-center gap-3 p-4 rounded-lg bg-destructive/10 text-destructive border border-destructive/20">
+                <AlertCircle className="w-5 h-5 shrink-0" />
+                <p className="text-sm">{error}</p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setError('')}
+                  className="ml-auto p-1 h-auto"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+              {/* Input Section */}
+              <Card className="border-border">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <FileText className="w-5 h-5" />
+                    Transcript Input
+                  </CardTitle>
+                  <CardDescription className="text-sm">
+                    Upload a file or paste your meeting transcript
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* File Upload */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept={ALLOWED_EXTENSIONS.map((ext) => `.${ext}`).join(',')}
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+
+                  {uploadedFile ? (
+                    <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-secondary/30">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <FileUp className="w-5 h-5 text-primary shrink-0" />
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm truncate">{uploadedFile.name}</p>
+                          <p className="text-xs text-muted-foreground">{formatFileSize(uploadedFile.size)}</p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={removeFile}
+                        className="p-1 h-auto shrink-0"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploading}
+                      className="w-full gap-2"
+                    >
+                      {isUploading ? (
+                        <>
+                          <Loader className="w-4 h-4 animate-spin" />
+                          Reading file...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-4 h-4" />
+                          Upload Transcript (PDF, DOCX, TXT)
+                        </>
+                      )}
+                    </Button>
+                  )}
+
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t border-border" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-card px-2 text-muted-foreground">Or paste text</span>
+                    </div>
+                  </div>
+
+                  <Textarea
+                    value={transcript}
+                    onChange={(e) => {
+                      setTranscript(e.target.value);
+                      if (uploadedFile) setUploadedFile(null);
+                    }}
+                    onPaste={(e) => {
+                      // Allow paste to work normally
+                      setTimeout(() => {
+                        const target = e.currentTarget;
+                        setTranscript(target.value);
+                        if (uploadedFile) setUploadedFile(null);
+                      }, 0);
+                    }}
+                    placeholder="Paste your meeting transcript here...
 
 Example:
 John: Good morning everyone. Let's discuss the Q4 roadmap.
 Sarah: I think we should prioritize the mobile app redesign.
 John: Agreed. What's the timeline?
 Sarah: We can have a prototype ready by end of November..."
-                className="min-h-[300px] bg-input border-border font-mono text-sm"
-              />
+                    className="min-h-[300px] bg-input border-border font-mono text-sm"
+                    readOnly={false}
+                  />
 
-              <div className="flex gap-2">
-                <Button
-                  onClick={handleAnalyze}
-                  disabled={!transcript.trim() || isAnalyzing}
-                  className="flex-1"
-                >
-                  {isAnalyzing ? (
-                    <>
-                      <Loader className="w-4 h-4 mr-2 animate-spin" />
-                      Analyzing...
-                    </>
-                  ) : (
-                    <>
-                      <FileText className="w-4 h-4 mr-2" />
-                      Analyze Transcript
-                    </>
-                  )}
-                </Button>
-                {isAnalyzing && (
-                  <Button
-                    onClick={stopAnalysis}
-                    variant="outline"
-                    className="gap-2"
-                  >
-                    <Square className="w-4 h-4" />
-                    Stop
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Output Section */}
-          <Card className="border-border">
-            <CardHeader>
-              <CardTitle>Analysis Results</CardTitle>
-              <CardDescription>
-                Structured insights from your meeting transcript
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="min-h-[300px] max-h-[500px] overflow-auto bg-input border border-border rounded-lg p-4">
-                {isAnalyzing && !analysis && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Loader className="w-4 h-4 animate-spin" />
-                    Analyzing your transcript...
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button
+                      onClick={handleAnalyze}
+                      disabled={!transcript.trim() || isAnalyzing}
+                      className="flex-1"
+                    >
+                      {isAnalyzing ? (
+                        <>
+                          <Loader className="w-4 h-4 mr-2 animate-spin" />
+                          Analyzing...
+                        </>
+                      ) : (
+                        <>
+                          <FileText className="w-4 h-4 mr-2" />
+                          Analyze Transcript
+                        </>
+                      )}
+                    </Button>
+                    {isAnalyzing && (
+                      <Button
+                        onClick={stopAnalysis}
+                        variant="outline"
+                        className="gap-2"
+                      >
+                        <Square className="w-4 h-4" />
+                        Stop
+                      </Button>
+                    )}
                   </div>
-                )}
-                {analysis ? (
-                  <div className="prose prose-sm max-w-none dark:prose-invert">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {analysis}
-                    </ReactMarkdown>
-                  </div>
-                ) : (
-                  !isAnalyzing && (
-                    <span className="text-muted-foreground text-sm">
-                      Analysis results will appear here...
-                    </span>
-                  )
-                )}
-              </div>
-
-              {analysis && !isAnalyzing && (
-                <Button
-                  onClick={handleCopy}
-                  variant="outline"
-                  className="w-full"
-                >
-                  {copied ? (
-                    <>
-                      <Check className="w-4 h-4 mr-2" />
-                      Copied!
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-4 h-4 mr-2" />
-                      Copy Analysis
-                    </>
-                  )}
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Features Section */}
-        <div>
-          <h2 className="text-2xl font-bold text-foreground mb-4">What You Get</h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              {
-                title: 'Meeting Overview',
-                description: 'Quick summary of the meeting purpose and key outcomes',
-              },
-              {
-                title: 'Key Points',
-                description: 'Important discussions, decisions, and insights extracted',
-              },
-              {
-                title: 'Action Items',
-                description: 'Tasks, owners, and deadlines clearly identified',
-              },
-              {
-                title: 'Important Terms',
-                description: 'Technical terms, names, and concepts highlighted',
-              },
-            ].map((feature) => (
-              <Card key={feature.title} className="border-border">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">{feature.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">{feature.description}</p>
                 </CardContent>
               </Card>
-            ))}
-          </div>
-        </div>
 
-        {/* Tips Section */}
-        <Card className="border-border bg-secondary/20">
-          <CardHeader>
-            <CardTitle className="text-lg">Tips for Best Results</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li className="flex items-start gap-2">
-                <span className="text-primary mt-1">1.</span>
-                <span>Include speaker labels when possible (e.g., &quot;John: Good morning...&quot;)</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary mt-1">2.</span>
-                <span>For PDF/DOCX files, copy-paste the text directly for best extraction</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary mt-1">3.</span>
-                <span>Longer transcripts with clear context provide better analysis results</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary mt-1">4.</span>
-                <span>The analyzer works best with complete meetings rather than fragments</span>
-              </li>
-            </ul>
-          </CardContent>
-        </Card>
+              {/* Output Section */}
+              <Card className="border-border">
+                <CardHeader>
+                  <CardTitle className="text-lg">Analysis Results</CardTitle>
+                  <CardDescription className="text-sm">
+                    Structured insights from your meeting transcript
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="min-h-[300px] max-h-[500px] overflow-auto bg-input border border-border rounded-lg p-4">
+                    {isAnalyzing && !analysis && (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Loader className="w-4 h-4 animate-spin" />
+                        Analyzing your transcript...
+                      </div>
+                    )}
+                    {analysis ? (
+                      <div className="prose prose-sm max-w-none dark:prose-invert text-foreground">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {analysis}
+                        </ReactMarkdown>
+                      </div>
+                    ) : (
+                      !isAnalyzing && (
+                        <span className="text-muted-foreground text-sm">
+                          Analysis results will appear here...
+                        </span>
+                      )
+                    )}
+                  </div>
+
+                  {analysis && !isAnalyzing && (
+                    <Button
+                      onClick={handleCopy}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      {copied ? (
+                        <>
+                          <Check className="w-4 h-4 mr-2" />
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-4 h-4 mr-2" />
+                          Copy Analysis
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Features Section */}
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4">What You Get</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {[
+                  {
+                    title: 'Meeting Overview',
+                    description: 'Quick summary of the meeting purpose and key outcomes',
+                  },
+                  {
+                    title: 'Key Points',
+                    description: 'Important discussions, decisions, and insights extracted',
+                  },
+                  {
+                    title: 'Action Items',
+                    description: 'Tasks, owners, and deadlines clearly identified',
+                  },
+                  {
+                    title: 'Important Terms',
+                    description: 'Technical terms, names, and concepts highlighted',
+                  },
+                ].map((feature) => (
+                  <Card key={feature.title} className="border-border">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base">{feature.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground">{feature.description}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            {/* Tips Section */}
+            <Card className="border-border bg-secondary/20">
+              <CardHeader>
+                <CardTitle className="text-lg">Tips for Best Results</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-1 shrink-0">1.</span>
+                    <span>Include speaker labels when possible (e.g., &quot;John: Good morning...&quot;)</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-1 shrink-0">2.</span>
+                    <span>For PDF/DOCX files, copy-paste the text directly for best extraction</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-1 shrink-0">3.</span>
+                    <span>Longer transcripts with clear context provide better analysis results</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-1 shrink-0">4.</span>
+                    <span>The analyzer works best with complete meetings rather than fragments</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

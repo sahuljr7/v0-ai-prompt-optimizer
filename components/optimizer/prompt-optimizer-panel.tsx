@@ -157,10 +157,10 @@ export function PromptOptimizerPanel() {
   };
 
   return (
-    <div className="flex-1 overflow-auto">
+    <div className="flex-1 overflow-auto bg-background">
       <div className="flex h-full">
         {/* Sessions Sidebar */}
-        <div className={`${showSessions ? 'w-64' : 'w-0'} overflow-hidden transition-all duration-300 border-r border-border bg-card`}>
+        <div className={`${showSessions ? 'w-48 sm:w-56 lg:w-64' : 'w-0'} overflow-hidden transition-all duration-300 border-r border-border bg-card`}>
           <div className="h-full flex flex-col">
             <div className="p-4 border-b border-border">
               <Button
@@ -212,44 +212,54 @@ export function PromptOptimizerPanel() {
 
         {/* Main Content */}
         <div className="flex-1 overflow-auto">
-          <div className="p-6 max-w-5xl mx-auto space-y-6">
+          <div className="p-4 sm:p-6 max-w-6xl mx-auto space-y-6">
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <h1 className="text-3xl font-bold text-foreground">Prompt Optimizer</h1>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+                <div className="flex-1">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Prompt Optimizer</h1>
+                  <p className="text-sm sm:text-base text-muted-foreground mt-1">
+                    Transform vague prompts into powerful, specific instructions for better AI results
+                  </p>
+                </div>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setShowSessions(!showSessions)}
-                  className="gap-2"
+                  className="gap-2 whitespace-nowrap"
                 >
                   <MessageSquare className="w-4 h-4" />
                   {showSessions ? 'Hide' : 'Show'} Sessions
                 </Button>
               </div>
-              <p className="text-muted-foreground">
-                Transform vague prompts into powerful, specific instructions for better AI results
-              </p>
             </div>
 
-            <div className="grid lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               {/* Input Section */}
               <Card className="border-border">
                 <CardHeader>
-                  <CardTitle>Your Prompt</CardTitle>
-                  <CardDescription>Enter your initial prompt</CardDescription>
+                  <CardTitle className="text-lg">Your Prompt</CardTitle>
+                  <CardDescription className="text-sm">Enter your initial prompt</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <Textarea
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
+                    onPaste={(e) => {
+                      // Allow paste to work normally
+                      setTimeout(() => {
+                        const target = e.currentTarget;
+                        setPrompt(target.value);
+                      }, 0);
+                    }}
                     placeholder="Type your prompt here..."
                     className="min-h-48 bg-input border-border"
+                    readOnly={false}
                   />
 
                   {/* Tone and Style Controls */}
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-2">
-                      <Label htmlFor="tone" className="text-sm">
+                      <Label htmlFor="tone" className="text-xs sm:text-sm font-medium">
                         Tone
                       </Label>
                       <select
@@ -265,7 +275,7 @@ export function PromptOptimizerPanel() {
                       </select>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="style" className="text-sm">
+                      <Label htmlFor="style" className="text-xs sm:text-sm font-medium">
                         Style
                       </Label>
                       <select
@@ -304,11 +314,11 @@ export function PromptOptimizerPanel() {
               {/* Output Section */}
               <Card className="border-border">
                 <CardHeader>
-                  <CardTitle>Optimized Prompt</CardTitle>
-                  <CardDescription>Your AI-enhanced prompt</CardDescription>
+                  <CardTitle className="text-lg">Optimized Prompt</CardTitle>
+                  <CardDescription className="text-sm">Your AI-enhanced prompt</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="min-h-48 bg-input border border-border rounded-lg p-4 text-foreground whitespace-pre-wrap break-words text-sm">
+                  <div className="min-h-48 bg-input border border-border rounded-lg p-4 text-foreground whitespace-pre-wrap break-words text-sm overflow-auto max-h-[500px]">
                     {isLoading && !optimized && (
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <Loader className="w-4 h-4 animate-spin" />
@@ -316,7 +326,7 @@ export function PromptOptimizerPanel() {
                       </div>
                     )}
                     {error && (
-                      <div className="text-destructive">Error: {error}</div>
+                      <div className="text-destructive text-sm">{error}</div>
                     )}
                     {optimized && !error && optimized}
                     {!optimized && !isLoading && !error && (
@@ -348,13 +358,13 @@ export function PromptOptimizerPanel() {
 
             {/* Tips Section */}
             <div>
-              <h2 className="text-2xl font-bold text-foreground mb-4">Optimization Tips</h2>
-              <div className="grid md:grid-cols-2 gap-4">
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4">Optimization Tips</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {optimizationTips.map((tip) => (
                   <Card key={tip.title} className="border-border">
                     <CardHeader>
-                      <CardTitle className="text-lg">{tip.title}</CardTitle>
-                      <CardDescription>{tip.description}</CardDescription>
+                      <CardTitle className="text-base sm:text-lg">{tip.title}</CardTitle>
+                      <CardDescription className="text-xs sm:text-sm">{tip.description}</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <code className="text-xs bg-secondary p-3 rounded block whitespace-pre-wrap break-words">
@@ -368,8 +378,8 @@ export function PromptOptimizerPanel() {
 
             {/* Templates Section */}
             <div>
-              <h2 className="text-2xl font-bold text-foreground mb-4">Prompt Templates</h2>
-              <div className="grid md:grid-cols-2 gap-3">
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4">Prompt Templates</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {promptTemplates.map((tmpl) => (
                   <Card
                     key={tmpl.name}
