@@ -1,6 +1,7 @@
 'use client';
 
-import { MessageCircle, Sparkles, FileText } from 'lucide-react';
+import { MessageCircle, Sparkles, FileText, Home } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 
 type TabType = 'chat' | 'optimizer' | 'transcript';
@@ -9,9 +10,12 @@ interface SidebarProps {
   activeTab: TabType;
   onTabChange: (tab: TabType) => void;
   isMobile?: boolean;
+  homeButtonVisible?: boolean;
 }
 
-export function Sidebar({ activeTab, onTabChange, isMobile = false }: SidebarProps) {
+export function Sidebar({ activeTab, onTabChange, isMobile = false, homeButtonVisible = false }: SidebarProps) {
+  const router = useRouter();
+  
   const navItems = [
     { id: 'chat' as TabType, label: 'Chat', icon: MessageCircle },
     { id: 'optimizer' as TabType, label: 'Optimizer', icon: Sparkles },
@@ -25,11 +29,23 @@ export function Sidebar({ activeTab, onTabChange, isMobile = false }: SidebarPro
         : 'w-64 bg-sidebar border-r border-sidebar-border'
     } flex flex-col`}>
       {!isMobile && (
-        <div className="p-6 border-b border-sidebar-border">
-          <h1 className="text-2xl font-bold text-sidebar-foreground tracking-tight">
-            AI Assistant
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">Powered by Ollama</p>
+        <div className="p-6 border-b border-sidebar-border space-y-4">
+          {homeButtonVisible && (
+            <Button
+              variant="outline"
+              className="w-full gap-2 justify-start"
+              onClick={() => router.push('/')}
+            >
+              <Home className="w-4 h-4" />
+              Back to Home
+            </Button>
+          )}
+          <div>
+            <h1 className="text-2xl font-bold text-sidebar-foreground tracking-tight">
+              AI Assistant
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">Powered by Ollama</p>
+          </div>
         </div>
       )}
 

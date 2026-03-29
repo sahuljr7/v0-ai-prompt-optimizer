@@ -7,8 +7,8 @@ import './globals.css'
 
 
 export const metadata: Metadata = {
-  title: 'AI Chat Assistant',
-  description: 'AI-powered chat assistant with prompt optimization and streaming responses',
+  title: 'AI Suite - Chat, Optimize & Analyze',
+  description: 'Complete AI assistant suite with chat, prompt optimization, and meeting transcript analysis',
   generator: 'v0.app',
   icons: {
     icon: [
