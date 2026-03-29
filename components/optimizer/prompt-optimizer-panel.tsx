@@ -94,7 +94,7 @@ export function PromptOptimizerPanel() {
   useEffect(() => {
     if (isLoaded && activeSessionId) {
       const activeSession = sessions.find((session) => session.id === activeSessionId);
-      if (activeSession) {
+      if (activeSession && activeSession.data.prompt !== prompt) {
         setPrompt(activeSession.data.prompt);
         setOptimized(activeSession.data.optimized);
         setTone(activeSession.data.tone);
@@ -105,7 +105,7 @@ export function PromptOptimizerPanel() {
     } else if (isLoaded && !activeSessionId && sessions.length > 0) {
       switchSession(sessions[0].id);
     }
-  }, [isLoaded, activeSessionId, sessions, createOptimizationSession, switchSession]);
+  }, [isLoaded, activeSessionId]);
 
   // Persist changes to session
   useEffect(() => {
@@ -244,16 +244,8 @@ export function PromptOptimizerPanel() {
                   <Textarea
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
-                    onPaste={(e) => {
-                      // Allow paste to work normally
-                      setTimeout(() => {
-                        const target = e.currentTarget;
-                        setPrompt(target.value);
-                      }, 0);
-                    }}
                     placeholder="Type your prompt here..."
                     className="min-h-48 bg-input border-border"
-                    readOnly={false}
                   />
 
                   {/* Tone and Style Controls */}

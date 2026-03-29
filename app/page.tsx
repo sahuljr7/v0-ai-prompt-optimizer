@@ -48,11 +48,6 @@ export default function HomePage() {
               <p className="text-xs text-muted-foreground">Powered by Advanced AI</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm">
-              Settings
-            </Button>
-          </div>
         </div>
       </header>
 
