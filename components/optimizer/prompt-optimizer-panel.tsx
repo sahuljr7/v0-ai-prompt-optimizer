@@ -83,7 +83,6 @@ export function PromptOptimizerPanel() {
     activeSessionId,
     isLoaded,
     createOptimizationSession,
-    getActiveSession,
     updateSessionPrompt,
     updateSessionOptimized,
     updateSessionOptions,
@@ -94,7 +93,7 @@ export function PromptOptimizerPanel() {
   // Load active session data on mount and when switching sessions
   useEffect(() => {
     if (isLoaded && activeSessionId) {
-      const activeSession = getActiveSession();
+      const activeSession = sessions.find((session) => session.id === activeSessionId);
       if (activeSession) {
         setPrompt(activeSession.data.prompt);
         setOptimized(activeSession.data.optimized);
@@ -106,7 +105,7 @@ export function PromptOptimizerPanel() {
     } else if (isLoaded && !activeSessionId && sessions.length > 0) {
       switchSession(sessions[0].id);
     }
-  }, [isLoaded, activeSessionId, sessions.length, getActiveSession, createOptimizationSession, switchSession]);
+  }, [isLoaded, activeSessionId, sessions, createOptimizationSession, switchSession]);
 
   // Persist changes to session
   useEffect(() => {
