@@ -353,30 +353,21 @@ export function TranscriptAnalyzerPanel() {
                     </div>
                   </div>
 
-                  <Textarea
-                    value={transcript}
-                    onChange={(e) => {
-                      setTranscript(e.target.value);
-                      if (uploadedFile) setUploadedFile(null);
-                    }}
-                    onPaste={(e) => {
-                      // Allow paste to work normally
-                      setTimeout(() => {
-                        const target = e.currentTarget;
-                        setTranscript(target.value);
-                        if (uploadedFile) setUploadedFile(null);
-                      }, 0);
-                    }}
-                    placeholder="Paste your meeting transcript here...
+              <Textarea
+                value={transcript}
+                onChange={(e) => {
+                  setTranscript(e.target.value);
+                  if (uploadedFile) setUploadedFile(null);
+                }}
+                placeholder="Paste your meeting transcript here...
 
 Example:
 John: Good morning everyone. Let's discuss the Q4 roadmap.
 Sarah: I think we should prioritize the mobile app redesign.
 John: Agreed. What's the timeline?
 Sarah: We can have a prototype ready by end of November..."
-                    className="min-h-[300px] bg-input border-border font-mono text-sm"
-                    readOnly={false}
-                  />
+                className="min-h-[300px] bg-input border-border font-mono text-sm"
+              />
 
                   <div className="flex flex-col sm:flex-row gap-2">
                     <Button
