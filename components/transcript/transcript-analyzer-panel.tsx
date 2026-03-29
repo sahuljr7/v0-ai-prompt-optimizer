@@ -48,7 +48,6 @@ export function TranscriptAnalyzerPanel() {
     activeSessionId,
     isLoaded,
     createTranscriptSession,
-    getActiveSession,
     updateSessionTranscript,
     updateSessionAnalysis,
     updateSessionFileInfo,
@@ -60,7 +59,7 @@ export function TranscriptAnalyzerPanel() {
   // Load active session data on mount and when switching sessions
   useEffect(() => {
     if (isLoaded && activeSessionId) {
-      const activeSession = getActiveSession();
+      const activeSession = sessions.find((session) => session.id === activeSessionId);
       if (activeSession) {
         setTranscript(activeSession.data.transcript);
         setAnalysis(activeSession.data.analysis);
@@ -79,7 +78,7 @@ export function TranscriptAnalyzerPanel() {
       // Switch to first session if none active
       switchSession(sessions[0].id);
     }
-  }, [isLoaded, activeSessionId, sessions.length, getActiveSession, createTranscriptSession, switchSession]);
+  }, [isLoaded, activeSessionId, sessions, createTranscriptSession, switchSession]);
 
   // Persist changes to session
   useEffect(() => {
